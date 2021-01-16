@@ -9,15 +9,12 @@ API uses Instaloader models.
 2. Add / Delete comment.
 3. Follow / Unfollow users.
 4. Get notifications.
+5. Keep followers list in csv file
 
 ## Example
 
 An example can be found at **bot.py**, and Instaloader's documentation can be also useful.
 
-## Contacts
-
-http://tlasky.herokuapp.com/
-
 ## Installation
 
-`pip install git+https://github.com/tlaskyd/tlaskyinsta`
+`pip install git+https://github.com/peprunner/tlaskyinsta`
