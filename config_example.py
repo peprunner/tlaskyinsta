@@ -5,9 +5,10 @@ username, password = 'your username', 'your password'
 debug = False
 
 interests: List[Union[str, int]] = list()
-interests.extend('nature czechnature czechgirl slovaknature slovakgirl'.split())
+interests.extend('nature italy landscape nofilter traveler'.split())
 interests.extend([
-    244516490,  # CZ
-    261698127,  # SK
+    113396132004585,  # IT
+    112483542097587,  # UK
+    113019615379046,  # ES
     108100019211318,  # DE
 ])
