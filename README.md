@@ -9,7 +9,7 @@ API uses Instaloader models.
 2. Add / Delete comment.
 3. Follow / Unfollow users.
 4. Get notifications.
-5. Keep followers list in csv file
+5. Keep followers list in csv file.
 
 ## Example
 
