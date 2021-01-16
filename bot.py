@@ -1,8 +1,15 @@
 import random
+import os
+import csv
+from tempfile import NamedTemporaryFile
 from config import *
 from tlasky_insta import *
 from traceback import print_exc
 from datetime import datetime, timedelta
+
+session_file = './session.pickle'
+if os.path.isfile(session_file):
+    os.remove(session_file)
 
 loader = Instaloader()
 safe_login(
@@ -11,17 +18,6 @@ safe_login(
     session_path
 )
 insta = TlaskyInsta(loader)
-
-# Follow tlasky and like his posts.
-tlasky = 'david_tlaskal'
-if loader.context.username != tlasky:
-    profile = Profile.from_username(loader.context, tlasky)
-    if not profile.followed_by_viewer:
-        insta.follow_profile(profile)
-    for post in profile.get_posts():
-        if not post.viewer_has_liked:
-            insta.like_post(post)
-            wait(random.uniform(60, 120))
 
 
 def process_notifications():
@@ -49,12 +45,21 @@ def load_posts() -> List[Post]:
             loader.get_location_posts(item) if type(item) == int else loader.get_hashtag_posts(item),
             random.randint(5, 10)
         ))
-        wait(random.uniform(60, 60 * 2))
+        wait(random.uniform(1, 2))
+        #wait(random.uniform(60, 60 * 2))
     # List because we can shuffle it
     posts = list(posts)
     random.shuffle(posts)
     return posts
 
+# csv file with followers list
+filename = 'followers.csv'
+tempfile = NamedTemporaryFile(mode='w', delete=False)
+fields = ['username','timestamp']
+
+#Counter
+followed = 0
+likes = 0
 
 while True:
     try:
@@ -67,20 +72,41 @@ while True:
                 process_notifications()
             # Like posts
             for post in load_posts():
-                print('Liking ', f'https://instagram.com/p/{post.shortcode}')
-                if not insta.like_post(post).viewer_has_liked:
-                    # Confirm that image was really liked
-                    print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
+                profile = post.owner_profile
+                followers = profile.followers
+                print(f"profile:",profile,"followers:",followers)
+                if followers < 800:
+                    print('Liking ', f'https://instagram.com/p/{post.shortcode}', 'of', profile.username)
+                    likes += 1
+                    if not insta.like_post(post).viewer_has_liked:
+                        # Confirm that image was really liked
+                        print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
+
+                     # Follow the user
+                    if not profile.followed_by_viewer:
+                        print(f"Following",profile.username,'timestamp:' , datetime.now().strftime("%d/%m/%Y %H:%M:%S")+"\n")
+                        insta.follow_profile(profile)
+                        with open('followers.csv','a') as fd:
+                            myCsvRow= str(profile.username)+","+str(datetime.now().strftime("%d/%m/%Y %H:%M:%S"))+"\n"
+                            fd.write(myCsvRow)
+                            followed += 1
+                else:
+                    print(f"User",profile.username,'has too much followers:',followers,"\n")
+
                 # Process notifications at least every ~ 20+ minutes
                 if datetime.now() - insta.last_notifications_at > timedelta(minutes=20):
                     process_notifications()
                 # Wait to avoid rate limit or likes block
-                wait(random.uniform(60 * 20, 60 * 30))
+                wait(random.uniform(1, 1))
+                #wait(random.uniform(60 * 20, 60 * 30))
     except (
             KeyboardInterrupt,
             LoginRequiredException, TwoFactorAuthRequiredException,
             ConnectionException, BadCredentialsException, InvalidArgumentException
     ):
+        print("\n\n"+f"Report:")
+        print('Liked {} photos.'.format(likes))
+        print('Followed {} new people.'.format(followed)+"\n")
         break
     except Exception:
         print_exc()
