@@ -19,7 +19,6 @@ safe_login(
 )
 insta = TlaskyInsta(loader)
 
-
 def process_notifications():
     # Process notifications
     print('Checking notifications.')
@@ -45,7 +44,7 @@ def load_posts() -> List[Post]:
             loader.get_location_posts(item) if type(item) == int else loader.get_hashtag_posts(item),
             random.randint(5, 10)
         ))
-        wait(random.uniform(1, 2))
+        wait(random.uniform(10, 30 ))
         #wait(random.uniform(60, 60 * 2))
     # List because we can shuffle it
     posts = list(posts)
@@ -60,6 +59,7 @@ fields = ['username','timestamp']
 #Counter
 followed = 0
 likes = 0
+comments = 0
 
 while True:
     try:
@@ -71,7 +71,7 @@ while True:
             if not insta.last_notifications_at:
                 process_notifications()
             # Like posts
-            for post in load_posts():
+            for post in random.choices(load_posts(), k=random.randint(5, 15)):
                 profile = post.owner_profile
                 followers = profile.followers
                 print(f"profile:",profile,"followers:",followers)
@@ -81,6 +81,26 @@ while True:
                     if not insta.like_post(post).viewer_has_liked:
                         # Confirm that image was really liked
                         print(f'Liking is probably blocked. Please delete "{session_path}" and re-login.')
+
+                    # Comment photos
+                    if (enable_comments):
+                        comm_prob = random.randint(1,12)
+                        comments += 1
+                        if comm_prob > 6 and comm_prob < 9:
+                            print('Commenting','Really cool','to',profile.username)
+                            insta.comment_post(post,'Really cool')
+                        elif comm_prob == 1:
+                            print('Commenting','Nice work :)','to',profile.username)
+                            insta.comment_post(post,'Nice work :)')
+                        elif comm_prob > 10:
+                            print('Commenting','Nice gallery :)','to',profile.username)
+                            insta.comment_post(post,'Nice gallery :)')
+                        elif comm_prob == 3:
+                            print('Commenting','So cool :)','to',profile.username)
+                            insta.comment_post(post,'So cool! :)')
+                        else :
+                            comments -= 1
+                            print ('No comment left to', profile.username)
 
                      # Follow the user
                     if not profile.followed_by_viewer:
@@ -97,15 +117,16 @@ while True:
                 if datetime.now() - insta.last_notifications_at > timedelta(minutes=20):
                     process_notifications()
                 # Wait to avoid rate limit or likes block
-                wait(random.uniform(1, 1))
+                wait(random.uniform(60, 90))
                 #wait(random.uniform(60 * 20, 60 * 30))
     except (
             KeyboardInterrupt,
             LoginRequiredException, TwoFactorAuthRequiredException,
             ConnectionException, BadCredentialsException, InvalidArgumentException
     ):
-        print("\n\n"+f"Report:")
+        print('\n\n'+f'Report:'+'\n')
         print('Liked {} photos.'.format(likes))
+        print('Commented {} photos.'.format(comments))
         print('Followed {} new people.'.format(followed)+"\n")
         break
     except Exception:

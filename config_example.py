@@ -3,6 +3,7 @@ from typing import Union, List
 session_path = './session.pickle'
 username, password = 'your username', 'your password'
 debug = False
+enable_comments = False
 
 interests: List[Union[str, int]] = list()
 interests.extend('nature italy landscape nofilter traveler'.split())
